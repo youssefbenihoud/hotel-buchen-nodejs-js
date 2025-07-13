@@ -53,12 +53,101 @@ async function hotelBookingWorkflow(customerPreferences) {
 }
     
 
+/* Implementing Aufgabe 2 */
 
-// Beispielaufruf des Workflows
-// Der Servicemitarbeiter gibt die Kundenwünsche ein:
-const customerPreferences = {
-    roomType: 'single', // Mögliche Werte: 'single', 'double', 'suite'
-    guestName: 'Alice Smith'
+// Simulierte Zimmerpreise pro Nacht
+const roomPrices = {
+    single: 50,    // Preis für ein Einzelzimmer
+    double: 80,    // Preis für ein Doppelzimmer
+    suite: 150     // Preis für eine Suite
 };
 
-hotelBookingWorkflow(customerPreferences);
+// Funktion zur Berechnung des Gesamtpreises
+function calculateTotalPrice(roomType, nights) {
+    const pricePerNight = roomPrices[roomType];
+    if (!pricePerNight) {
+        throw new Error('Unbekannter Zimmerpreis');
+    }
+    return pricePerNight * nights;
+}
+
+// Funktion zur Bonitätsprüfung (simuliert)
+async function performCreditCheck(customerName) {
+    // Simulierte Bonitätsprüfung: 80% Wahrscheinlichkeit, dass die Prüfung erfolgreich ist
+    const creditCheckResult = Math.random() < 0.8;
+    if (creditCheckResult) {
+        console.log(`Bonitätsprüfung für ${customerName} war erfolgreich.`);
+        return true;
+    } else {
+        console.log(`Bonitätsprüfung für ${customerName} war nicht erfolgreich.`);
+        return false;
+    }
+}
+
+// Erweiterter Workflow mit Preisberechnung und Ratenzahlung
+async function extendedHotelBookingWorkflow(customerPreferences) {
+    const { roomType, guestName, nights, paymentOption } = customerPreferences;
+
+    // Berechne den Gesamtpreis
+    const totalPrice = calculateTotalPrice(roomType, nights);
+    console.log(`Gesamtpreis für ${nights} Nächte im ${roomType}-Zimmer: ${totalPrice} €`);
+
+    // Prüfe die Verfügbarkeit und buche das Zimmer
+    const availableRooms = {
+        single: [100, 101],
+        double: [102, 103],
+        suite: [104, 105]
+    };
+
+    const roomsToCheck = availableRooms[roomType];
+    if (!roomsToCheck || roomsToCheck.length === 0) {
+        console.log('Keine Zimmer verfügbar für den gewünschten Typ.');
+        return;
+    }
+
+    let bookedRoom = null;
+    for (const room of roomsToCheck) {
+        const isAvailable = await checkRoomAvailability(room);
+        if (isAvailable) {
+            console.log(`Zimmer ${room} ist verfügbar. Buche Zimmer...`);
+            const bookingResult = await bookRoom(room, guestName);
+            console.log('Buchungsergebnis:', bookingResult);
+            bookedRoom = room;
+            break;
+        }
+    }
+
+    if (!bookedRoom) {
+        console.log('Kein passendes Zimmer verfügbar.');
+        return;
+    }
+
+    // Zahlungsoptionen
+    if (paymentOption === 'full') {
+        console.log(`${guestName} hat den Gesamtbetrag von ${totalPrice} € bezahlt.`);
+    } else if (paymentOption === 'installment') {
+        console.log(`${guestName} hat eine Ratenzahlung gewählt. Führe Bonitätsprüfung durch...`);
+        const creditCheckPassed = await performCreditCheck(guestName);
+
+        if (creditCheckPassed) {
+            console.log(`Ratenzahlung für ${guestName} genehmigt.`);
+            console.log(`Der Betrag von ${totalPrice} € wird in monatlichen Raten beglichen.`);
+        } else {
+            console.log(`Ratenzahlung für ${guestName} abgelehnt. Bitte wählen Sie eine andere Zahlungsoption.`);
+        }
+    } else {
+        console.log('Ungültige Zahlungsoption ausgewählt.');
+    }
+
+    console.log(`Buchung für ${guestName} im Zimmer ${bookedRoom} abgeschlossen.`);
+}
+
+// Beispielaufruf des erweiterten Workflows
+const customerPreferences = {
+    roomType: 'single',         // Mögliche Werte: 'single', 'double', 'suite'
+    guestName: 'Alice Smith',
+    nights: 5,                  // Anzahl der Nächte
+    paymentOption: 'installment' // Mögliche Werte: 'full' (voller Betrag), 'installment' (Ratenzahlung)
+};
+
+extendedHotelBookingWorkflow(customerPreferences);
