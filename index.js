@@ -1,25 +1,22 @@
 const express = require('express');
 const app = express();
-const port = 8080; // Du kannst den Port ändern, falls 8080 bereits belegt ist.
+const port = 8080;
 
-// Middleware zum Parsen von JSON
 app.use(express.json());
 
-// Simulierte Datenbank (in-memory)
 let rooms = {
     100: { status: 'free', guest: null },
     101: { status: 'free', guest: null },
-    102: { status: 'occupied', guest: 'John Doe' },
-    // Fügen Sie hier weitere Zimmer hinzu
+    102: { status: 'occupied', guest: 'John Doe' }
 };
 
-// GET /hotels/berlin/rooms - Alle Zimmer abrufen
+// GET /hotels/berlin/rooms
 app.get('/hotels/berlin/rooms', (req, res) => {
     const roomNumbers = Object.keys(rooms);
     res.json(roomNumbers);
 });
 
-// GET /hotels/berlin/rooms/:roomNumber - Status eines bestimmten Zimmers abrufen
+// GET /hotels/berlin/rooms/:roomNumber
 app.get('/hotels/berlin/rooms/:roomNumber', (req, res) => {
     const roomNumber = req.params.roomNumber;
     const room = rooms[roomNumber];
@@ -30,7 +27,7 @@ app.get('/hotels/berlin/rooms/:roomNumber', (req, res) => {
     }
 });
 
-// PUT /hotels/berlin/rooms/:roomNumber - Status eines Zimmers ändern
+// PUT /hotels/berlin/rooms/:roomNumber
 app.put('/hotels/berlin/rooms/:roomNumber', (req, res) => {
     const roomNumber = req.params.roomNumber;
     const newStatus = req.body.status;
@@ -51,7 +48,6 @@ app.put('/hotels/berlin/rooms/:roomNumber', (req, res) => {
     res.json({ message: 'Zimmerstatus aktualisiert', room: rooms[roomNumber] });
 });
 
-// Server starten
 app.listen(port, () => {
     console.log(`Server läuft auf http://localhost:${port}`);
 });
